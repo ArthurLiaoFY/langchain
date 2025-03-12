@@ -3,3 +3,4 @@ test*
 api_keys.py
 examples
 api_key*
+__pycache__
