@@ -1,14 +1,12 @@
 # %%
 # Chat models
 
-from typing import List, TypedDict
+from typing import List
 
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 from pydantic import BaseModel, Field
-
-from langchain.output_parsers import PydanticOutputParser
 
 
 class TravelPlan(BaseModel):
