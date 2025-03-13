@@ -18,7 +18,6 @@ class TravelPlan(BaseModel):
     accommodation: List[str] = Field(description="住宿選項")
 
 
-# %%
 prompt = ChatPromptTemplate.from_messages(
     [
         ("system", "使用繁體中文回答以下問題,\n" "{format_instructions}"),
