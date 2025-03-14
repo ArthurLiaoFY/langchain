@@ -23,10 +23,15 @@ set_debug(True)
 
 with open("api_keys.json") as f:
     api_keys = json.loads(f.read())
+model = "deepseek-r1:14b"
+collection = "Chinook_DB_table_summary"
+# setup DB
+db = SQLDatabase.from_uri(database_uri="sqlite:///Chinook.db")
+db._sample_rows_in_table_info = 3
 
 
 # %% stage 1, inspect each table
-class SQLDescription(BaseModel):
+class SQLDistillInfo(BaseModel):
     table_name: str = Field(
         description="name of this table?",
     )
@@ -39,8 +44,8 @@ class SQLDescription(BaseModel):
     )
 
 
-json_parser = JsonOutputParser(pydantic_object=SQLDescription)
-sqlite_schema_prompt = ChatPromptTemplate.from_messages(
+json_parser = JsonOutputParser(pydantic_object=SQLDistillInfo)
+sql_schema_prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
@@ -60,14 +65,12 @@ sqlite_schema_prompt = ChatPromptTemplate.from_messages(
         ),
     ]
 )
-model = ChatOllama(model="deepseek-r1:14b", temperature=0)
-chain = sqlite_schema_prompt | model | json_parser
+model = ChatOllama(model=model, temperature=0)
+chain = sql_schema_prompt | model | json_parser
 # %%
-db = SQLDatabase.from_uri(database_uri="sqlite:///Chinook.db")
-db._sample_rows_in_table_info = 3
+
 # %%
 result = {}
-# %%
 for idx, single_table_info in enumerate(
     db.get_table_info().replace("\n", "").replace("\t", "").split("CREATE")
 ):
@@ -79,9 +82,8 @@ for idx, single_table_info in enumerate(
             }
         )
 # %% save to vector DB
-collection = "Chinook_DB_table_summary"
 
-embeddings = OllamaEmbeddings(model="deepseek-r1:14b")
+embeddings = OllamaEmbeddings(model=model)
 qdrant_client = QdrantClient(
     url=api_keys.get("qdrant_url"),
     api_key=api_keys.get("qdrant_api_key"),
