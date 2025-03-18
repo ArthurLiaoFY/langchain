@@ -1,10 +1,9 @@
 # %%
 # https://python.langchain.com/docs/tutorials/sql_qa/
 import json
-import operator
-from collections import defaultdict
 from typing import Annotated, Dict, List, Literal, TypedDict
 
+from IPython.display import Image, display
 from langchain_community.utilities import SQLDatabase
 from langchain_core.documents import Document
 from langchain_core.output_parsers import JsonOutputParser
@@ -21,7 +20,7 @@ from langchain.cache import InMemoryCache
 from langchain.globals import set_debug, set_llm_cache
 
 set_llm_cache(InMemoryCache())
-set_debug(True)
+set_debug(False)
 
 with open("api_keys.json") as f:
     api_keys = json.loads(f.read())
@@ -42,19 +41,12 @@ class OverallSQLState(TypedDict):
 
 class SingleSQLDistillState(TypedDict):
     table_name: str
-    columns: List[str]
+    data_sample: str
     data_description: str
 
 
-json_parser = JsonOutputParser(pydantic_object=SingleSQLDistillState)
 sql_schema_prompt = ChatPromptTemplate.from_messages(
     [
-        (
-            "system",
-            "You are an SQL expert specializing in analyzing SQLite schema structures, "
-            "helping users understand what information this table contains."
-            "{format_instructions}",
-        ),
         (
             "user",
             "Here is the SQLite database schema information. "
@@ -68,15 +60,20 @@ sql_schema_prompt = ChatPromptTemplate.from_messages(
     ]
 )
 model = ChatOllama(model=model, temperature=0)
-chain = sql_schema_prompt | model | json_parser
 
 
 # %%
-def get_sql_dialect(state: OverallSQLState):
+def sql_info_distill(data_sample: str) -> str:
+    return model.invoke(
+        input=sql_schema_prompt.invoke(input=data_sample),
+    )
+
+
+def get_basic_infos(state: OverallSQLState):
     return {"dialect": state["db"].dialect}
 
 
-def get_sql_tables(state: OverallSQLState):
+def get_table_infos(state: OverallSQLState):
     return {
         "tables": {
             table: {
@@ -87,57 +84,35 @@ def get_sql_tables(state: OverallSQLState):
                         .run(f"PRAGMA table_info({table});", fetch="cursor")
                         .fetchall()
                     ]
-                )
+                ),
+                "desc": sql_info_distill(
+                    data_sample=(
+                        db.run(
+                            command=f"SELECT * FROM {table} LIMIT 10;",
+                            include_columns=True,
+                        )
+                        .replace("\n", "")
+                        .replace("\t", "")
+                        .replace("\t", "")
+                    )
+                ),
             }
             for table in state["db"].get_usable_table_names()
         }
     }
 
 
-def single_sql_distill(state: SingleSQLDistillState):
-    return {
-        "data_description": db.run(
-            f"SELECT {state['columns']} FROM {state['table_name']} LIMIT 10;"
-        )
-        .replace("\n", "")
-        .replace("\t", "")
-        .replace("\t", "")
-    }
-
-
-def sql_merge(state: SingleSQLDistillState):
-    return {"tables": {state["table_name"]: state["data_description"]}}
-
-
-def continue_to_sqls(state: OverallSQLState):
-    return [
-        Send(
-            node="sql_distill",
-            arg={
-                "table_name": table,
-                "columns": ", ".join(
-                    [
-                        col_info[1]
-                        for col_info in state["db"]
-                        .run(f"PRAGMA table_info({table});", fetch="cursor")
-                        .fetchall()
-                    ]
-                ),
-            },
-        )
-        for table in db.get_usable_table_names()
-    ]
-
-
 graph = StateGraph(OverallSQLState)
-graph.add_node("get_sql_dialect", get_sql_dialect)
-graph.add_node("get_sql_tables", get_sql_tables)
-graph.add_node("single_sql_distill", single_sql_distill)
+graph.add_node("get_basic_infos", get_basic_infos)
+graph.add_node("get_table_infos", get_table_infos)
 
 # %%
-graph.add_edge(START, "get_sql_dialect")
-graph.add_edge(START, "get_sql_tables")
+graph.add_edge(START, "get_basic_infos")
+graph.add_edge(START, "get_table_infos")
 app = graph.compile()
+# %%
+
+display(Image(app.get_graph().draw_mermaid_png()))
 # %%
 for s in app.stream(
     {
