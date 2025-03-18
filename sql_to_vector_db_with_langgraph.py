@@ -66,7 +66,7 @@ model = ChatOllama(model=model, temperature=0)
 def sql_info_distill(data_sample: str) -> str:
     return model.invoke(
         input=sql_schema_prompt.invoke(input=data_sample),
-    )
+    ).content
 
 
 def get_basic_infos(state: OverallSQLState):
@@ -102,11 +102,11 @@ def get_table_infos(state: OverallSQLState):
     }
 
 
+# %%
 graph = StateGraph(OverallSQLState)
 graph.add_node("get_basic_infos", get_basic_infos)
 graph.add_node("get_table_infos", get_table_infos)
 
-# %%
 graph.add_edge(START, "get_basic_infos")
 graph.add_edge(START, "get_table_infos")
 app = graph.compile()
@@ -121,6 +121,4 @@ for s in app.stream(
     }
 ):
     print(s)
-# %%
-s
 # %%
