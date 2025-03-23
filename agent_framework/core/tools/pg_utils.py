@@ -1,22 +1,26 @@
 import psycopg2
 from psycopg2.extensions import connection
-from typing_extensions import Dict, List
+from typing_extensions import Dict, List, Union
 
 from langchain.tools import tool
 
 
 @tool
 def connect_db(
-    host: str, port: int, dbname: str, user: str, password: str
-) -> connection:
+    postgres_connection_infos: Dict[str, Union[int, str]],
+) -> Union[connection, None]:
     """Connect to Postgres database"""
-    return psycopg2.connect(
-        host=host,
-        port=port,
-        dbname=dbname,
-        user=user,
-        password=password,
-    )
+    try:
+        return psycopg2.connect(
+            host=postgres_connection_infos.get("host"),
+            port=postgres_connection_infos.get("port"),
+            dbname=postgres_connection_infos.get("dbname"),
+            user=postgres_connection_infos.get("user"),
+            password=postgres_connection_infos.get("password"),
+        )
+
+    except psycopg2.OperationalError:
+        return None
 
 
 @tool
