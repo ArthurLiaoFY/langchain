@@ -5,6 +5,7 @@ from typing_extensions import Annotated, Dict, List, TypedDict, Union
 class PostgresDatabaseState(TypedDict):
     # ---------------------------
     postgres_connection_infos: Dict[str, Union[int, str]]
+    recursion_limit: int
     # ---------------------------
     database: connection
     recursion_time: int

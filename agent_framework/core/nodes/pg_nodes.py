@@ -24,3 +24,8 @@ def connect_db_node(state: PostgresDatabaseState) -> Dict[connection | None, boo
         "recursion_time": 0 if conn is not None else state["recursion_time"] + 1,
         "is_connected": True if conn is not None else False,
     }
+
+
+def get_table_infos(state: PostgresDatabaseState):
+
+    pass
