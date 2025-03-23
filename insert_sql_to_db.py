@@ -10,6 +10,7 @@ from psycopg2.extensions import connection
 from typing_extensions import Annotated, Dict, List, TypedDict
 
 from agent_framework.core.nodes.pg_nodes import connect_db_node
+from agent_framework.core.routes.pg_routes import reconnect_db
 from agent_framework.core.states.pg_states import PostgresDatabaseState, TableState
 from agent_framework.core.tools.qdrant_utils import (
     connect_collection_vector_store,
@@ -31,14 +32,6 @@ with open("config.json") as f:
 
 
 # %%
-def route(state: PostgresDatabaseState):
-    if state["is_connected"]:
-        return END
-    else:
-        if state["recursion_time"] < config.get("database", {}).get("recursion_limit"):
-            return "connect_db_node"
-        else:
-            return END
 
 
 # %%
@@ -49,8 +42,8 @@ graph.add_node("connect_db_node", connect_db_node)
 
 
 graph.add_edge(START, "connect_db_node")
-graph.add_conditional_edges("connect_db_node", route)
-# Define edges
+graph.add_conditional_edges("connect_db_node", reconnect_db)
+
 
 app = graph.compile()
 # %%
@@ -58,6 +51,7 @@ for s in app.stream(
     {
         "postgres_connection_infos": secrets.get("postgres"),
         "recursion_time": 0,
+        "recursion_limit": config.get("database", {}).get("recursion_limit"),
     }
 ):
     print(s)
