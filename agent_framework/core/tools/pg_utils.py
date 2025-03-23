@@ -51,7 +51,7 @@ def get_table_columns(database: connection, table_name: str) -> List[str]:
             f"""
             SELECT column_name
             FROM information_schema.columns
-            WHERE table_name = "{table_name}";
+            WHERE table_name = '{table_name}';
             """
         )
         return [row[0] for row in curs.fetchall()]
@@ -70,7 +70,7 @@ def get_related_tables(database: connection, table_name: str) -> List[str]:
                 ON tc.constraint_name = kcu.constraint_name
             WHERE 1=1
                 AND tc.constraint_type = 'FOREIGN KEY' 
-                AND kcu.table_name = "{table_name}";
+                AND kcu.table_name = '{table_name}';
             """
         )
         return [row[0] for row in curs.fetchall()]
@@ -93,7 +93,7 @@ def get_relationship_desc(database: connection, table_name: str) -> str:
                 ON ccu.constraint_name = tc.constraint_name
             WHERE 1=1
                 AND tc.constraint_type = 'FOREIGN KEY' 
-                AND tc.table_name = "{table_name}";
+                AND tc.table_name = '{table_name}';
             """
         )
         foreign_key_infos = [
