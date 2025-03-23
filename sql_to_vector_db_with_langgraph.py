@@ -24,18 +24,20 @@ from langchain.tools import BaseTool, StructuredTool, tool
 set_llm_cache(InMemoryCache())
 set_debug(False)
 
-with open("config.json") as f:
+with open("secrets.json") as f:
     config = json.loads(f.read())
 model = "deepseek-r1:14b"
 collection = "Chinook_DB_table_summary"
+database_uri = "sqlite:///Chinook.db"
 # %%
 # setup DB
-db = psycopg2.connect(**config.get("postgres"))
+db = SQLDatabase.from_uri(database_uri=database_uri)
+db._sample_rows_in_table_info = 3
 # %%
 
 
 @tool
-def get_pg_table_list(database: psycopg2.extensions.connection) -> list[str]:
+def get_pg_table_list(database: SQLDatabase) -> list[str]:
     """Get a list of tables in the database."""
     with database.cursor() as curs:
         curs.execute(
@@ -73,7 +75,7 @@ def get_pg_related_tables(
 
 # %% stage 1, inspect each table
 class OverallSQLState(TypedDict):
-    db: psycopg2.extensions.connection
+    db: SQLDatabase
     owner: str
     dialect: str
     tables: Dict[str, str | None]
