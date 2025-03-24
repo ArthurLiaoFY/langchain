@@ -1,13 +1,7 @@
 {
-    "model": {
-        "deepseek": {
-            "llm_vector_size": 5120,
-            "model_name": "deepseek-r1:14b"
-        },
-        "minicpm": {
-            "vector_size": 1024,
-            "model_name": "minicpm-v:8b"
-        }
+    "llm_model": {
+        "vector_size": 5120,
+        "model_name": "deepseek-r1:14b"
     },
     "database": {
         "recursion_limit": 4
