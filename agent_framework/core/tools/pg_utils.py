@@ -1,3 +1,4 @@
+import pandas as pd
 import psycopg2
 from psycopg2.extensions import connection
 from typing_extensions import Dict, List, Union
@@ -77,6 +78,22 @@ def get_related_tables(database: connection, table_name: str) -> List[str]:
 
 
 @tool
+def get_related_tables_desc(database: connection, table_name: str) -> List[str]:
+    """Find all the table desc related with table input."""
+    related_table_desc = [
+        row
+        + " with columns: "
+        + ", ".join(get_table_columns.invoke({"database": database, "table_name": row}))
+        for row in get_related_tables.invoke(
+            {"database": database, "table_name": table_name}
+        )
+    ]
+    return (
+        " and ".join(related_table_desc) + ". " if len(related_table_desc) > 0 else ""
+    )
+
+
+@tool
 def get_relationship_desc(database: connection, table_name: str) -> str:
     """Find all the table relationship desc."""
     with database.cursor() as curs:
@@ -96,21 +113,38 @@ def get_relationship_desc(database: connection, table_name: str) -> str:
                 AND tc.table_name = '{table_name}';
             """
         )
+
         foreign_key_infos = [
             f"foreign key {row[0]} references {row[2]} in table {row[1]}"
             for row in curs.fetchall()
         ]
         return (
-            ", " + " and ".join(foreign_key_infos) + "."
-            if len(foreign_key_infos) > 0
-            else ""
+            " and ".join(foreign_key_infos) + ". " if len(foreign_key_infos) > 0 else ""
         )
+
+
+@tool
+def get_table_primary_key(database: connection, table_name: str) -> List[str]:
+    """Get primary key from table."""
+    with database.cursor() as curs:
+        curs.execute(
+            f"""
+            SELECT k.column_name
+            FROM information_schema.table_constraints t
+            JOIN information_schema.key_column_usage k
+                ON t.table_name = k.table_name
+                AND t.constraint_name = k.constraint_name
+            WHERE t.constraint_type = 'PRIMARY KEY'
+                AND t.table_name = '{table_name}';
+            """
+        )
+        return [row[0] for row in curs.fetchall()]
 
 
 @tool
 def get_sample_data(
     database: connection, table_name: str, sample_size: int = 10
-) -> List[tuple]:
+) -> pd.DataFrame:
     """Query sample from table with specified sample size."""
     with database.cursor() as curs:
         curs.execute(
@@ -120,15 +154,19 @@ def get_sample_data(
             LIMIT {sample_size};
             """
         )
-        return curs.fetchall()
+        return pd.DataFrame(
+            data=curs.fetchall(), columns=[desc[0] for desc in curs.description]
+        )
 
 
 @tool
-def query(database: connection, query: str) -> List[tuple]:
+def query(database: connection, query: str) -> pd.DataFrame:
     """Query database with specified query."""
     with database.cursor() as curs:
         curs.execute(query)
-        return curs.fetchall()
+        return pd.DataFrame(
+            data=curs.fetchall(), columns=[desc[0] for desc in curs.description]
+        )
 
 
 @tool
