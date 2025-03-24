@@ -11,11 +11,10 @@ class TableState(TypedDict):
     primary_key: List[str]
     related_tables_desc: str
     relationship_desc: str
+    table_info_summary: str
 
 
 class PostgresDatabaseState(TypedDict):
-    # ---------------------------
-    llm_model: ChatOllama
     # ---------------------------
     postgres_connection_info: Dict[str, Union[int, str]]
     recursion_limit: int
@@ -26,6 +25,4 @@ class PostgresDatabaseState(TypedDict):
     is_connected: bool
     # ---------------------------
     tables: Dict[str, TableState]
-    # ---------------------------
-    table_information_summary: Annotated[List, add]
     # ---------------------------
