@@ -18,7 +18,7 @@ pg_table_information_extractor = ChatPromptTemplate.from_messages(
             first create a syntactically correct Postgres query to run, 
             then look at the results of the query and return the answer. 
 
-            Only use the following tables: 
+            Use the following tables: 
             main table: {table} with columns: {columns}, 
 
             primary key information: {primary_key}, 

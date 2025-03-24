@@ -12,6 +12,7 @@ def reconnect_db(state: PostgresDatabaseState):
         if state["recursion_time"] < state["recursion_limit"]:
             return "connect_db_node"
         else:
+            # go to init chat bot
             return END
 
 

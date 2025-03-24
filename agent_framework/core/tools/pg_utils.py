@@ -167,3 +167,5 @@ def query(database: connection, query: str) -> pd.DataFrame:
         return pd.DataFrame(
             data=curs.fetchall(), columns=[desc[0] for desc in curs.description]
         )
+
+
