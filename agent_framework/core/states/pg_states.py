@@ -11,8 +11,8 @@ class PostgresDatabaseState(TypedDict):
     recursion_time: int
     is_connected: bool
     # ---------------------------
-    tables: List[str]
-    table_infos: Dict[str, Dict[str, str]]
+    tables: Dict[str, Dict[str, str]]
+    # table_infos: Dict[str, Dict[str, str]]
     # ---------------------------
 
 
