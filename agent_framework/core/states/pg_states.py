@@ -14,7 +14,7 @@ class TableState(TypedDict):
     table_info_summary: str
 
 
-class PostgresDatabaseState(TypedDict):
+class DatabaseState(TypedDict):
     # ---------------------------
     postgres_connection_info: Dict[str, Union[int, str]]
     recursion_limit: int

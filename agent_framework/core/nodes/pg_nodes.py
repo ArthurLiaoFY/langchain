@@ -5,7 +5,7 @@ from typing_extensions import Dict, List
 from agent_framework.core.base_models.pg_base_models import PostgresInformationDistill
 from agent_framework.core.model import llm_model
 from agent_framework.core.prompts.pg_prompts import pg_table_information_extractor
-from agent_framework.core.states.pg_states import PostgresDatabaseState, TableState
+from agent_framework.core.states.pg_states import DatabaseState, TableState
 from agent_framework.core.tools.pg_utils import (
     close_connection,
     connection,
@@ -21,7 +21,7 @@ from agent_framework.core.tools.pg_utils import (
 
 
 def connect_database_node(
-    state: PostgresDatabaseState,
+    state: DatabaseState,
 ) -> Dict[connection | None, bool]:
     conn = database_connection.invoke(
         input={"postgres_connection_info": state["postgres_connection_info"]}
@@ -34,7 +34,7 @@ def connect_database_node(
     }
 
 
-def get_database_common_info_node(state: PostgresDatabaseState):
+def get_database_common_info_node(state: DatabaseState):
     return {
         "tables": {
             table_name: {
@@ -62,7 +62,7 @@ def get_database_common_info_node(state: PostgresDatabaseState):
     }
 
 
-def extract_table_info_node(state: PostgresDatabaseState):
+def extract_table_info_node(state: DatabaseState):
     return {
         "tables": {
             table_name: {
@@ -92,5 +92,5 @@ def extract_table_info_node(state: PostgresDatabaseState):
     }
 
 
-def upsert_to_vector_database_node(state: PostgresDatabaseState):
+def upsert_to_vector_database_node(state: DatabaseState):
     pass

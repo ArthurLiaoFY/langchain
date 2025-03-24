@@ -1,6 +1,5 @@
 from langchain_core.prompts import ChatPromptTemplate
 
-from agent_framework.core.states.pg_states import PostgresDatabaseState
 
 pg_table_information_extractor = ChatPromptTemplate.from_messages(
     [

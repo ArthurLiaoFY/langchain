@@ -17,7 +17,7 @@ from agent_framework.core.nodes.pg_nodes import (
     upsert_to_vector_database_node,
 )
 from agent_framework.core.routes.pg_routes import reconnect_db
-from agent_framework.core.states.pg_states import PostgresDatabaseState, TableState
+from agent_framework.core.states.pg_states import DatabaseState, TableState
 from agent_framework.core.tools.qdrant_utils import (
     connect_collection_vector_store,
     connect_qdrant_client,
@@ -44,7 +44,7 @@ with open("config.json") as f:
 
 
 # %%
-graph = StateGraph(PostgresDatabaseState)
+graph = StateGraph(DatabaseState)
 graph.add_node("connect_db", connect_database_node)
 graph.add_node("get_database_common_info", get_database_common_info_node)
 graph.add_node("extract_table_info", extract_table_info_node)
