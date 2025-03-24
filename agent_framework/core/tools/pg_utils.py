@@ -167,11 +167,3 @@ def query(database: connection, query: str) -> pd.DataFrame:
         return pd.DataFrame(
             data=curs.fetchall(), columns=[desc[0] for desc in curs.description]
         )
-
-
-@tool
-def extract_table_info():
-    """extract single table information"""
-    # prompt = joke_prompt.format(subject=state["subject"])
-    # response = model.with_structured_output(Joke).invoke(prompt)
-    # return {"jokes": [response.joke]}

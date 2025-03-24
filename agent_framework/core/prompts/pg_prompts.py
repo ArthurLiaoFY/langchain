@@ -6,7 +6,7 @@ pg_table_information_extractor = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            "You are an SQL expert specializing in analyzing {dialect} schema structures, "
+            "You are an SQL expert specializing in analyzing Postgres schema structures, "
             "helping users understand what information this table contains."
             "consider foreign table information if this table contains foreign keys.."
             "{format_instructions}",
@@ -15,7 +15,7 @@ pg_table_information_extractor = ChatPromptTemplate.from_messages(
             "human",
             """
             Given an input question, 
-            first create a syntactically correct {dialect} query to run, 
+            first create a syntactically correct Postgres query to run, 
             then look at the results of the query and return the answer. 
 
             Only use the following tables: 

@@ -18,7 +18,6 @@ class PostgresDatabaseState(TypedDict):
     llm_model: ChatOllama
     # ---------------------------
     postgres_connection_info: Dict[str, Union[int, str]]
-    dialect: str
     recursion_limit: int
     question: str
     # ---------------------------
