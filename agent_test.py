@@ -8,7 +8,10 @@ with open("config.json") as f:
     config = json.loads(f.read())
 
 # %%
-from agent_framework.core.agent.connect_pg import connect_postgres_agent
+from agent_framework.core.agent.pg_agent import (
+    connect_postgres_agent,
+    extract_table_summary_agent,
+)
 
 connect_postgres_agent().invoke(
     {
@@ -19,8 +22,6 @@ connect_postgres_agent().invoke(
 )["database"]
 
 # %%
-from agent_framework.core.agent.connect_pg import connect_postgres_agent
-from agent_framework.core.agent.extract_table_summary import extract_table_summary_agent
 
 extract_table_summary_agent().invoke(
     {
