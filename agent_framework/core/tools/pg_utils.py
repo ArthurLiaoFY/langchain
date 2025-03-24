@@ -7,17 +7,17 @@ from langchain.tools import tool
 
 
 @tool
-def connect_db(
-    postgres_connection_infos: Dict[str, Union[int, str]],
+def database_connection(
+    postgres_connection_info: Dict[str, Union[int, str]],
 ) -> Union[connection, None]:
     """Connect to Postgres database"""
     try:
         return psycopg2.connect(
-            host=postgres_connection_infos.get("host"),
-            port=postgres_connection_infos.get("port"),
-            dbname=postgres_connection_infos.get("dbname"),
-            user=postgres_connection_infos.get("user"),
-            password=postgres_connection_infos.get("password"),
+            host=postgres_connection_info.get("host"),
+            port=postgres_connection_info.get("port"),
+            dbname=postgres_connection_info.get("dbname"),
+            user=postgres_connection_info.get("user"),
+            password=postgres_connection_info.get("password"),
         )
 
     except psycopg2.OperationalError:
@@ -114,12 +114,12 @@ def get_relationship_desc(database: connection, table_name: str) -> str:
             """
         )
 
-        foreign_key_infos = [
+        foreign_key_info = [
             f"foreign key {row[0]} references {row[2]} in table {row[1]}"
             for row in curs.fetchall()
         ]
         return (
-            " and ".join(foreign_key_infos) + ". " if len(foreign_key_infos) > 0 else ""
+            " and ".join(foreign_key_info) + ". " if len(foreign_key_info) > 0 else ""
         )
 
 
@@ -170,6 +170,8 @@ def query(database: connection, query: str) -> pd.DataFrame:
 
 
 @tool
-def generate_table_description(database: connection, query: str) -> str:
-    """Generate table description from SQL infos by LLM model"""
-    pass
+def extract_table_info():
+    """extract single table information"""
+    # prompt = joke_prompt.format(subject=state["subject"])
+    # response = model.with_structured_output(Joke).invoke(prompt)
+    # return {"jokes": [response.joke]}

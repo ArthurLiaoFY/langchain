@@ -1,10 +1,13 @@
+from langchain_core.output_parsers import JsonOutputParser
 from typing_extensions import Dict, List
 
+from agent_framework.core.base_models.pg_base_models import PostgresInformationDistill
+from agent_framework.core.prompts.pg_prompts import pg_table_information_extractor
 from agent_framework.core.states.pg_states import PostgresDatabaseState
 from agent_framework.core.tools.pg_utils import (
     close_connection,
-    connect_db,
     connection,
+    database_connection,
     get_related_tables_desc,
     get_relationship_desc,
     get_sample_data,
@@ -15,9 +18,11 @@ from agent_framework.core.tools.pg_utils import (
 )
 
 
-def connect_db_node(state: PostgresDatabaseState) -> Dict[connection | None, bool]:
-    conn = connect_db.invoke(
-        input={"postgres_connection_infos": state["postgres_connection_infos"]}
+def connect_database_node(
+    state: PostgresDatabaseState,
+) -> Dict[connection | None, bool]:
+    conn = database_connection.invoke(
+        input={"postgres_connection_info": state["postgres_connection_info"]}
     )
 
     return {
@@ -28,11 +33,11 @@ def connect_db_node(state: PostgresDatabaseState) -> Dict[connection | None, boo
     }
 
 
-def get_database_common_infos_node(state: PostgresDatabaseState):
-
+def get_database_common_info_node(state: PostgresDatabaseState):
     return {
         "tables": {
             table_name: {
+                "table": table_name,
                 "columns": get_table_columns.invoke(
                     input={"database": state["database"], "table_name": table_name}
                 ),
@@ -54,3 +59,49 @@ def get_database_common_infos_node(state: PostgresDatabaseState):
             )
         },
     }
+
+
+def summarize_table_information(state: PostgresDatabaseState):
+    return state["llm_model"].invoke(
+        {
+            "input": pg_table_information_extractor.invoke(
+                {
+                    "dialect": state["dialect"],
+                    "format_instructions": JsonOutputParser(
+                        pydantic_object=PostgresInformationDistill
+                    ),
+                    # ---------------------------
+                    "table": state["table"],
+                    "columns": state["columns"],
+                    "primary_key": state["primary_key"],
+                    "relationship_desc": state["relationship_desc"],
+                    "related_tables_desc": state["related_tables_desc"],
+                    # ---------------------------
+                    "question": state["question"],
+                }
+            )
+        }
+    )
+
+
+def question_answering_node(state: PostgresDatabaseState):
+    state["llm_model"].invoke(
+        {
+            "input": pg_table_information_extractor.invoke(
+                {
+                    "dialect": state["dialect"],
+                    "format_instructions": JsonOutputParser(
+                        pydantic_object=PostgresInformationDistill
+                    ),
+                    # ---------------------------
+                    "table": state["table"],
+                    "columns": state["columns"],
+                    "primary_key": state["primary_key"],
+                    "relationship_desc": state["relationship_desc"],
+                    "related_tables_desc": state["related_tables_desc"],
+                    # ---------------------------
+                    "question": state["question"],
+                }
+            )
+        }
+    )

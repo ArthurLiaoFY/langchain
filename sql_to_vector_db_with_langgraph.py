@@ -114,14 +114,14 @@ def sql_info_distill(data_sample: str) -> str:
     ).content
 
 
-def get_basic_infos(state: OverallSQLState):
+def get_basic_info(state: OverallSQLState):
     """Get basic information about the database."""
     return {
         "dialect": state["db"].dialect,
     }
 
 
-def get_table_infos(state: OverallSQLState):
+def get_table_info(state: OverallSQLState):
     """Get information about each table in the database."""
     return {
         "tables": {
@@ -153,11 +153,11 @@ def get_table_infos(state: OverallSQLState):
 
 # %%
 graph = StateGraph(OverallSQLState)
-graph.add_node("get_basic_infos", get_basic_infos)
-graph.add_node("get_table_infos", get_table_infos)
+graph.add_node("get_basic_info", get_basic_info)
+graph.add_node("get_table_info", get_table_info)
 
-graph.add_edge(START, "get_basic_infos")
-graph.add_edge(START, "get_table_infos")
+graph.add_edge(START, "get_basic_info")
+graph.add_edge(START, "get_table_info")
 app = graph.compile()
 # %%
 

@@ -19,8 +19,11 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 set_llm_cache(InMemoryCache())
 set_debug(True)
-with open("api_keys.json") as f:
-    api_keys = json.loads(f.read())
+with open("secrets.json") as f:
+    secrets = json.loads(f.read())
+
+with open("config.json") as f:
+    config = json.loads(f.read())
 # %%
 # Load Documents
 loader = WebBaseLoader(
@@ -42,10 +45,7 @@ splits = text_splitter.split_documents(docs)
 # Embed
 # %%
 # setup vector store
-qdrant_client = QdrantClient(
-    url=api_keys.get("qdrant_url"),
-    api_key=api_keys.get("qdrant_api_key"),
-)
+qdrant_client = QdrantClient(**secrets.get("qdrant"))
 collection = "test_split_example"
 
 if not qdrant_client.collection_exists(collection):
@@ -104,11 +104,14 @@ rag_chain = (
         context=retriever | format_docs,
         question=RunnablePassthrough(),
     )
-    | prompt
-    | llm
-    | StrOutputParser()
+    # | prompt
+    # | llm
+    # | StrOutputParser()
 )
 # %%
 # Question
 res = rag_chain.invoke(input="What is Task Decomposition?")
 # %%
+res["context"]
+# %%
+"(4) Response generation: LLM receives the execution results and provides summarized results to users.\nTo put HuggingGPT into real world usage, a couple challenges need to solve: (1) Efficiency improvement is needed as both LLM inference rounds and interactions with other models slow down the process; (2) It relies on a long context window to communicate over complicated task content; (3) Stability improvement of LLM outputs and external model services.\n\nThey did an experiment on fine-tuning LLM to call a calculator, using arithmetic as a test case. Their experiments showed that it was harder to solve verbal math problems than explicitly stated math problems because LLMs (7B Jurassic1-large model) failed to extract the right arguments for the basic arithmetic reliably. The results highlight when the external symbolic tools can work reliably, knowing when to and how to use the tools are crucial, determined by the LLM capability.\nBoth TALM (Tool Augmented Language Models; Parisi et al. 2022) and Toolformer (Schick et al. 2023) fine-tune a LM to learn to use external tool APIs. The dataset is expanded based on whether a newly added API call annotation can improve the quality of model outputs. See more details in the “External APIs” section of Prompt Engineering.\n\nFig. 10. A picture of a sea otter using rock to crack open a seashell, while floating in the water. While some other animals can use tools, the complexity is not comparable with humans. (Image source: Animals using tools)\nMRKL (Karpas et al. 2022), short for “Modular Reasoning, Knowledge and Language”, is a neuro-symbolic architecture for autonomous agents. A MRKL system is proposed to contain a collection of “expert” modules and the general-purpose LLM works as a router to route inquiries to the best suitable expert module. These modules can be neural (e.g. deep learning models) or symbolic (e.g. math calculator, currency converter, weather API)."

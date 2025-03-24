@@ -1,24 +1,32 @@
+from operator import add
+
+from langchain_ollama.chat_models import ChatOllama
 from psycopg2.extensions import connection
 from typing_extensions import Annotated, Dict, List, TypedDict, Union
 
 
+class TableState(TypedDict):
+    table: str
+    columns: List[str]
+    primary_key: List[str]
+    related_tables_desc: str
+    relationship_desc: str
+
+
 class PostgresDatabaseState(TypedDict):
     # ---------------------------
-    postgres_connection_infos: Dict[str, Union[int, str]]
+    llm_model: ChatOllama
+    # ---------------------------
+    postgres_connection_info: Dict[str, Union[int, str]]
+    dialect: str
     recursion_limit: int
+    question: str
     # ---------------------------
     database: connection
     recursion_time: int
     is_connected: bool
     # ---------------------------
-    tables: Dict[str, Dict[str, str]]
-    # table_infos: Dict[str, Dict[str, str]]
+    tables: Dict[str, TableState]
     # ---------------------------
-
-
-class TableState(TypedDict):
-    table_name: str
-    table_columns: List[str]
-    related_tables: List[str]
-    relationship_desc: str
-    table_desc: str
+    table_information_summary: Annotated[List, add]
+    # ---------------------------

@@ -6,7 +6,7 @@ from langgraph.graph import END, START, MessagesState, StateGraph
 
 class State(MessagesState):
     db: SQLDatabase
-    table_infos: str
+    table_info: str
 
 
 def connector(state: State):
