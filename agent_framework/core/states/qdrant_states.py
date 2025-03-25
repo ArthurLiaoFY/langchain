@@ -13,7 +13,6 @@ class QdrantConnectionInfo(TypedDict):
     recursion_time: int
     is_connected: bool
     # ---------------------------
-    collection: str
 
 
 class QdrantClientState(TypedDict):

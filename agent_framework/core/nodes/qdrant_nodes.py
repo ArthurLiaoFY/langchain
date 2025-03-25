@@ -45,6 +45,14 @@ def reconnect_qdrant_client_node(
     }
 
 
+def delete_connection_info_node(
+    state: QdrantConnectionInfo,
+):
+    return {
+        "qdrant_connection_info": {},
+    }
+
+
 def create_new_collection_node(
     state: QdrantClientState,
 ):

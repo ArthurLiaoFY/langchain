@@ -7,13 +7,12 @@ from agent_framework.core.states.pg_states import PostgresConnectionInfo
 def database_connection_route(state: PostgresConnectionInfo):
     """Reconnect to database"""
     if state["is_connected"]:
-        return END
+        return "delete_sensitive_info"
     else:
         if state["recursion_time"] < state["recursion_limit"]:
             return "reconnect_db"
         else:
-            # go to init chat bot
-            return END
+            return "delete_sensitive_info"
 
 
 # def inspect_table(state: DatabaseState):

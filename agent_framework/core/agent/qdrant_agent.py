@@ -2,10 +2,11 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
 from agent_framework.core.nodes.qdrant_nodes import (
-    connect_collection_node,
     connect_qdrant_client_node,
-    create_new_collection_node,
     reconnect_qdrant_client_node,
+    delete_connection_info_node,
+    connect_collection_node,
+    create_new_collection_node,
 )
 from agent_framework.core.routes.llm_routes import llm_inference_route
 from agent_framework.core.routes.qdrant_routes import (
@@ -22,6 +23,7 @@ def connect_vector_database_agent() -> CompiledStateGraph:
     graph = StateGraph(QdrantConnectionInfo)
     graph.add_node(node="connect_qdrant_client", action=connect_qdrant_client_node)
     graph.add_node(node="reconnect_qdrant_client", action=reconnect_qdrant_client_node)
+    graph.add_node(node="delete_sensitive_info", action=delete_connection_info_node)
 
     graph.add_edge(start_key=START, end_key="connect_qdrant_client")
     graph.add_conditional_edges(
@@ -30,6 +32,7 @@ def connect_vector_database_agent() -> CompiledStateGraph:
     graph.add_conditional_edges(
         source="reconnect_qdrant_client", path=client_connection_route
     )
+    graph.add_edge(start_key="delete_sensitive_info", end_key=END)
 
     return graph.compile()
 

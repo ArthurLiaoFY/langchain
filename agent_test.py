@@ -24,7 +24,7 @@ connect_postgres_agent().invoke(
         "postgres_connection_info": secrets.get("postgres"),
         "recursion_limit": 4,
     }
-)["database"]
+)
 
 # %%
 
@@ -47,7 +47,7 @@ connect_vector_database_agent().invoke(
         "qdrant_connection_info": secrets.get("qdrant"),
         "recursion_limit": 4,
     }
-)["qdrant_client"]
+)
 # %%
 connect_collection_agent().invoke(
     {

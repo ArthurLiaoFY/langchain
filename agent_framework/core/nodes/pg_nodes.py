@@ -55,6 +55,14 @@ def reconnect_database_node(
     }
 
 
+def delete_connection_info_node(
+    state: PostgresConnectionInfo,
+):
+    return {
+        "postgres_connection_info": {},
+    }
+
+
 def get_database_common_info_node(state: DatabaseState):
     return {
         "tables": {
