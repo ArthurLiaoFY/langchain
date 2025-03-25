@@ -7,7 +7,7 @@ from agent_framework.core.agent.pg_agent import (
 )
 from agent_framework.core.agent.qdrant_agent import (
     connect_collection_agent,
-    connect_vector_database_agent,
+    connect_qdrant_agent,
 )
 
 with open("secrets.json") as f:
@@ -42,7 +42,7 @@ extract_table_summary_agent().invoke(
 
 # %%
 
-connect_vector_database_agent().invoke(
+connect_qdrant_agent().invoke(
     {
         "qdrant_connection_info": secrets.get("qdrant"),
         "recursion_limit": 4,
@@ -51,7 +51,7 @@ connect_vector_database_agent().invoke(
 # %%
 connect_collection_agent().invoke(
     {
-        "qdrant_client": connect_vector_database_agent().invoke(
+        "qdrant_client": connect_qdrant_agent().invoke(
             {
                 "qdrant_connection_info": secrets.get("qdrant"),
                 "recursion_limit": 4,
