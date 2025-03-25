@@ -59,6 +59,20 @@ def get_table_columns(database: connection, table_name: str) -> List[str]:
 
 
 @tool
+def get_table_oid(database: connection, table_name: str) -> List[str]:
+    """Get oid from table."""
+    with database.cursor() as curs:
+        curs.execute(
+            f"""
+            SELECT oid
+            FROM pg_class 
+            WHERE relname = '{table_name}';
+            """
+        )
+        return [row[0] for row in curs.fetchall()]
+
+
+@tool
 def get_related_tables(database: connection, table_name: str) -> List[str]:
     """Find all the table related with table input."""
     with database.cursor() as curs:
@@ -167,5 +181,3 @@ def query(database: connection, query: str) -> pd.DataFrame:
         return pd.DataFrame(
             data=curs.fetchall(), columns=[desc[0] for desc in curs.description]
         )
-
-
