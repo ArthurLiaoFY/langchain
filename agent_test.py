@@ -35,3 +35,12 @@ extract_table_summary_agent().invoke(
 )
 
 # %%
+from agent_framework.core.agent.qdrant_agent import connect_vector_database
+
+connect_vector_database().invoke(
+    {
+        "qdrant_connection_info": secrets.get("qdrant"),
+        "recursion_limit": 4,
+    }
+)["qdrant_client"]
+# %%
