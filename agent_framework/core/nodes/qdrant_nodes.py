@@ -12,7 +12,7 @@ from agent_framework.core.tools.qdrant_utils import (
 )
 
 
-def connect_vector_database_node(
+def connect_qdrant_client_node(
     state: QdrantConnectionInfo,
 ) -> Dict:
     client = connect_qdrant_client.invoke(
@@ -26,7 +26,7 @@ def connect_vector_database_node(
     }
 
 
-def reconnect_vector_database_node(
+def reconnect_qdrant_client_node(
     state: QdrantConnectionInfo,
 ) -> Dict:
     client = connect_qdrant_client.invoke(
