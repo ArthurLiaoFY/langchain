@@ -65,13 +65,13 @@ def retrieve_vector_store(vector_store: QdrantVectorStore, k_related_docs: int):
     pass
 
 
+@tool
 def insert_vector_store(
     vector_store: QdrantVectorStore,
     docs: List[Document],
-):
+) -> None:
     """Insert data to vector store"""
     vector_store.add_documents(documents=docs)
-    pass
 
 
 def check_payload_match(client: QdrantClient, collection_name: str, table_name: str):
