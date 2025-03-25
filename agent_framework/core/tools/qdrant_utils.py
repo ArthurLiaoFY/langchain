@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import Dict, List, Union
 
 from langchain_core.documents.base import Document
 from langchain_ollama import ChatOllama, OllamaEmbeddings
@@ -10,32 +10,53 @@ from langchain.tools import tool
 
 
 @tool
-def connect_qdrant_client(url: str, api_key: str) -> QdrantClient:
+def connect_qdrant_client(
+    qdrant_connection_info: Dict[str, str],
+) -> Union[QdrantClient, None]:
     """Connect to Qdrant client"""
-    return QdrantClient(
-        url=url,
-        api_key=api_key,
+    client = QdrantClient(
+        url=qdrant_connection_info.get("url"),
+        api_key=qdrant_connection_info.get("api_key"),
     )
+    try:
+        client.get_locks()
+        return client
+    except Exception as e:
+        return None
+
+
+@tool
+def create_collection_vector_store(
+    client: QdrantClient,
+    collection_name: str,
+    llm_vector_size: int,
+) -> None:
+    """Connect to collection vector store in Qdrant database"""
+    client.create_collection(
+        collection_name=collection_name,
+        vectors_config=VectorParams(
+            size=llm_vector_size,
+            distance=Distance.COSINE,
+        ),
+    )
+    return None
 
 
 @tool
 def connect_collection_vector_store(
-    client: QdrantClient, collection_name: str, llm_vector_size: int, llm_model: str
-) -> QdrantVectorStore:
+    client: QdrantClient,
+    collection_name: str,
+    llm_embd: OllamaEmbeddings,
+) -> Union[QdrantVectorStore, None]:
     """Connect to collection vector store in Qdrant database"""
     if not client.collection_exists(collection_name):
-        client.create_collection(
+        return None
+    else:
+        return QdrantVectorStore(
+            client=client,
             collection_name=collection_name,
-            vectors_config=VectorParams(
-                size=llm_vector_size,
-                distance=Distance.COSINE,
-            ),
+            embedding=llm_embd,
         )
-    return QdrantVectorStore(
-        client=client,
-        collection_name=collection_name,
-        embedding=OllamaEmbeddings(model=llm_model),
-    )
 
 
 def retrieve_vector_store(vector_store: QdrantVectorStore, k_related_docs: int):
