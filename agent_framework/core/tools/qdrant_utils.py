@@ -27,13 +27,13 @@ def connect_qdrant_client(
 
 @tool
 def create_collection_vector_store(
-    client: QdrantClient,
-    collection_name: str,
+    qdrant_client: QdrantClient,
+    collection: str,
     llm_vector_size: int,
 ) -> None:
     """Connect to collection vector store in Qdrant database"""
-    client.create_collection(
-        collection_name=collection_name,
+    qdrant_client.create_collection(
+        collection_name=collection,
         vectors_config=VectorParams(
             size=llm_vector_size,
             distance=Distance.COSINE,
@@ -44,19 +44,19 @@ def create_collection_vector_store(
 
 @tool
 def connect_collection_vector_store(
-    client: QdrantClient,
-    collection_name: str,
+    qdrant_client: QdrantClient,
+    collection: str,
     llm_embd: OllamaEmbeddings,
 ) -> Union[QdrantVectorStore, None]:
     """Connect to collection vector store in Qdrant database"""
-    if not client.collection_exists(collection_name):
-        return None
-    else:
+    try:
         return QdrantVectorStore(
-            client=client,
-            collection_name=collection_name,
+            client=qdrant_client,
+            collection_name=collection,
             embedding=llm_embd,
         )
+    except:
+        return None
 
 
 def retrieve_vector_store(vector_store: QdrantVectorStore, k_related_docs: int):

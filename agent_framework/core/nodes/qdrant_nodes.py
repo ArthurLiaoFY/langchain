@@ -9,6 +9,7 @@ from agent_framework.core.states.qdrant_states import (
 from agent_framework.core.tools.qdrant_utils import (
     connect_collection_vector_store,
     connect_qdrant_client,
+    create_collection_vector_store,
 )
 
 
@@ -44,7 +45,19 @@ def reconnect_qdrant_client_node(
     }
 
 
-def connect_collection_vector_store_node(
+def create_new_collection_node(
+    state: QdrantClientState,
+):
+    create_collection_vector_store.invoke(
+        {
+            "qdrant_client": state["qdrant_client"],
+            "collection": state["collection"],
+            "llm_vector_size": llm_vector_size,
+        }
+    )
+
+
+def connect_collection_node(
     state: QdrantClientState,
 ):
     vector_store = connect_collection_vector_store.invoke(
@@ -54,3 +67,7 @@ def connect_collection_vector_store_node(
             "llm_embd": llm_embd,
         }
     )
+    return {
+        "vector_store": vector_store,
+        "is_connected": True if vector_store is not None else False,
+    }

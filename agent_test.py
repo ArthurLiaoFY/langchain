@@ -1,6 +1,15 @@
 # %%
 import json
 
+from agent_framework.core.agent.pg_agent import (
+    connect_postgres_agent,
+    extract_table_summary_agent,
+)
+from agent_framework.core.agent.qdrant_agent import (
+    connect_collection_agent,
+    connect_vector_database_agent,
+)
+
 with open("secrets.json") as f:
     secrets = json.loads(f.read())
 
@@ -8,10 +17,7 @@ with open("config.json") as f:
     config = json.loads(f.read())
 
 # %%
-from agent_framework.core.agent.pg_agent import (
-    connect_postgres_agent,
-    extract_table_summary_agent,
-)
+
 
 connect_postgres_agent().invoke(
     {
@@ -35,12 +41,24 @@ extract_table_summary_agent().invoke(
 )
 
 # %%
-from agent_framework.core.agent.qdrant_agent import connect_vector_database
 
-connect_vector_database().invoke(
+connect_vector_database_agent().invoke(
     {
         "qdrant_connection_info": secrets.get("qdrant"),
         "recursion_limit": 4,
     }
 )["qdrant_client"]
+# %%
+connect_collection_agent().invoke(
+    {
+        "qdrant_client": connect_vector_database_agent().invoke(
+            {
+                "qdrant_connection_info": secrets.get("qdrant"),
+                "recursion_limit": 4,
+            }
+        )["qdrant_client"],
+        "collection": config.get("vector_store").get("collection"),
+    }
+)
+
 # %%

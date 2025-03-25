@@ -25,5 +25,5 @@ class QdrantClientState(TypedDict):
     llm_embd: OllamaEmbeddings
     # ---------------------------
     vector_store: Union[QdrantVectorStore, None]
+    is_connected: bool
     # ---------------------------
-    debug: bool
