@@ -1,11 +1,16 @@
 from langchain_core.output_parsers import JsonOutputParser
 from langgraph.types import Send
-from typing_extensions import Dict, List
+from qdrant_client.models import Distance, PointStruct, VectorParams
+from typing_extensions import Dict, List, Union
 
 from agent_framework.core.base_models.pg_base_models import PostgresInformationDistill
 from agent_framework.core.model import llm_model
 from agent_framework.core.prompts.pg_prompts import pg_table_information_extractor
-from agent_framework.core.states.pg_states import DatabaseState, TableState
+from agent_framework.core.states.pg_states import (
+    DatabaseState,
+    PostgresConnectionInfo,
+    TableState,
+)
 from agent_framework.core.tools.pg_utils import (
     close_connection,
     connection,
@@ -21,15 +26,31 @@ from agent_framework.core.tools.pg_utils import (
 
 
 def connect_database_node(
-    state: DatabaseState,
-) -> Dict[connection | None, bool]:
+    state: PostgresConnectionInfo,
+) -> Dict[str, Union[connection, None, bool]]:
     conn = database_connection.invoke(
         input={"postgres_connection_info": state["postgres_connection_info"]}
     )
 
     return {
         "database": conn,
-        "recursion_time": 0 if conn is not None else state["recursion_time"] + 1,
+        "recursion_time": 0 if conn is not None else 1,
+        "is_connected": True if conn is not None else False,
+    }
+
+
+def reconnect_database_node(
+    state: PostgresConnectionInfo,
+) -> Dict[str, Union[connection, None, bool]]:
+    conn = database_connection.invoke(
+        input={"postgres_connection_info": state["postgres_connection_info"]}
+    )
+
+    return {
+        "database": conn,
+        "recursion_time": (
+            state["recursion_time"] if conn is not None else state["recursion_time"] + 1
+        ),
         "is_connected": True if conn is not None else False,
     }
 
@@ -62,7 +83,7 @@ def get_database_common_info_node(state: DatabaseState):
     }
 
 
-def extract_table_info_node(state: DatabaseState):
+def extract_table_summary_node(state: DatabaseState):
     return {
         "tables": {
             table_name: {

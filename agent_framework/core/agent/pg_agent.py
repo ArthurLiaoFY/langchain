@@ -5,17 +5,26 @@ from agent_framework.core.nodes.pg_nodes import (
     connect_database_node,
     extract_table_summary_node,
     get_database_common_info_node,
+    reconnect_database_node,
 )
-from agent_framework.core.routes.pg_routes import reconnect_db
+from agent_framework.core.routes.pg_routes import database_connection_route
 from agent_framework.core.states.pg_states import DatabaseState, PostgresConnectionInfo
 
 
 def connect_postgres_agent() -> CompiledStateGraph:
     graph = StateGraph(PostgresConnectionInfo)
-    graph.add_node("connect_db", connect_database_node)
+    graph.add_node(node="connect_db", action=connect_database_node)
+    graph.add_node(node="reconnect_db", action=reconnect_database_node)
 
-    graph.add_edge(START, "connect_db")
-    graph.add_conditional_edges("connect_db", reconnect_db, [END])
+    graph.add_edge(start_key=START, end_key="connect_db")
+    graph.add_conditional_edges(
+        source="connect_db",
+        path=database_connection_route,
+    )
+    graph.add_conditional_edges(
+        source="reconnect_db",
+        path=database_connection_route,
+    )
 
     return graph.compile()
 

@@ -16,7 +16,6 @@ from agent_framework.core.agent.pg_agent import (
 connect_postgres_agent().invoke(
     {
         "postgres_connection_info": secrets.get("postgres"),
-        "recursion_time": 0,
         "recursion_limit": 4,
     }
 )["database"]
@@ -28,7 +27,6 @@ extract_table_summary_agent().invoke(
         "database": connect_postgres_agent().invoke(
             {
                 "postgres_connection_info": secrets.get("postgres"),
-                "recursion_time": 0,
                 "recursion_limit": 4,
             }
         )["database"]
