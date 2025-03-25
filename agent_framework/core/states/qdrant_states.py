@@ -1,4 +1,3 @@
-from langchain_ollama import OllamaEmbeddings
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
 from typing_extensions import Dict, TypedDict, Union
@@ -19,9 +18,6 @@ class QdrantClientState(TypedDict):
     # ---------------------------
     qdrant_client: QdrantClient
     collection: str
-    # ---------------------------
-    llm_vector_size: int
-    llm_embd: OllamaEmbeddings
     # ---------------------------
     vector_store: Union[QdrantVectorStore, None]
     is_connected: bool
