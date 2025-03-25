@@ -6,6 +6,7 @@ from typing_extensions import Annotated, Dict, List, TypedDict, Union
 from langchain_core.documents.base import Document
 
 class TableState(TypedDict):
+    table_oid: str
     table: str
     columns: List[str]
     primary_key: List[str]

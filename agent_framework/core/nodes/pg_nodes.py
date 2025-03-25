@@ -21,6 +21,7 @@ from agent_framework.core.tools.pg_utils import (
     get_sample_data,
     get_table_columns,
     get_table_list,
+    get_table_oid,
     get_table_primary_key,
     query,
 )
@@ -68,6 +69,9 @@ def get_database_common_info_node(state: DatabaseState):
     return {
         "tables": {
             table_name: {
+                "table_oid": get_table_oid.invoke(
+                    input={"database": state["database"], "table_name": table_name}
+                ),
                 "table": table_name,
                 "columns": get_table_columns.invoke(
                     input={"database": state["database"], "table_name": table_name}

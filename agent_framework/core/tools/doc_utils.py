@@ -6,7 +6,7 @@ from langchain.tools import tool
 
 
 @tool
-def str_to_doc(content: str, metadata: Dict[str, Union[List, str]]) -> Document:
+def str_to_doc(content: str, metadata: Dict[str, str]) -> Document:
     """Convert content to Document"""
     return Document(page_content=content, metadata=metadata)
 
