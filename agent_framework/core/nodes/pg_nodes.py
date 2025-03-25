@@ -113,5 +113,14 @@ def extract_table_summary_node(state: DatabaseState):
     }
 
 
+def extract_fake_summary_node(state: DatabaseState):
+    return {
+        "tables": {
+            table_name: {**table_details, "table_info_summary": "hello world"}
+            for table_name, table_details in state["tables"].items()
+        }
+    }
+
+
 def upsert_to_vector_database_node(state: DatabaseState):
     pass
