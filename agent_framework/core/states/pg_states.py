@@ -19,7 +19,7 @@ class PostgresConnectionInfo(TypedDict):
     postgres_connection_info: Dict[str, Union[int, str]]
     recursion_limit: int
     # ---------------------------
-    database: connection
+    database: Union[connection, None]
     recursion_time: int
     is_connected: bool
 
