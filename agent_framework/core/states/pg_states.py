@@ -14,15 +14,21 @@ class TableState(TypedDict):
     table_info_summary: str
 
 
-class DatabaseState(TypedDict):
+class PostgresConnectionInfo(TypedDict):
     # ---------------------------
     postgres_connection_info: Dict[str, Union[int, str]]
     recursion_limit: int
-    question: str
     # ---------------------------
     database: connection
     recursion_time: int
     is_connected: bool
+
+
+class DatabaseState(TypedDict):
+    # ---------------------------
+    database: connection
+    # qdrant_connection_info: Dict[str, QdrantConnectionInfo]
     # ---------------------------
     tables: Dict[str, TableState]
     # ---------------------------
+    debug: bool

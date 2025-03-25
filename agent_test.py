@@ -29,7 +29,8 @@ extract_table_summary_agent().invoke(
                 "postgres_connection_info": secrets.get("postgres"),
                 "recursion_limit": 4,
             }
-        )["database"]
+        )["database"],
+        "debug": True,
     }
 )
 
