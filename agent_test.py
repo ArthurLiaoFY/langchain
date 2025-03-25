@@ -19,7 +19,7 @@ with open("config.json") as f:
 # %%
 
 
-connect_postgres_agent().invoke(
+postgres = connect_postgres_agent().invoke(
     {
         "postgres_connection_info": secrets.get("postgres"),
         "recursion_limit": 4,
@@ -30,19 +30,14 @@ connect_postgres_agent().invoke(
 
 extract_table_summary_agent().invoke(
     {
-        "database": connect_postgres_agent().invoke(
-            {
-                "postgres_connection_info": secrets.get("postgres"),
-                "recursion_limit": 4,
-            }
-        )["database"],
+        "database": postgres["database"],
         "debug": True,
     }
 )
 
 # %%
 
-connect_qdrant_agent().invoke(
+qdrant = connect_qdrant_agent().invoke(
     {
         "qdrant_connection_info": secrets.get("qdrant"),
         "recursion_limit": 4,
@@ -51,12 +46,7 @@ connect_qdrant_agent().invoke(
 # %%
 connect_collection_agent().invoke(
     {
-        "qdrant_client": connect_qdrant_agent().invoke(
-            {
-                "qdrant_connection_info": secrets.get("qdrant"),
-                "recursion_limit": 4,
-            }
-        )["qdrant_client"],
+        "qdrant_client": qdrant["qdrant_client"],
         "collection": config.get("vector_store").get("collection"),
     }
 )
