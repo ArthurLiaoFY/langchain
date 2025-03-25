@@ -37,7 +37,7 @@ def connect_qdrant_agent() -> CompiledStateGraph:
     return graph.compile()
 
 
-def connect_collection_agent() -> CompiledStateGraph:
+def collection_checking_agent() -> CompiledStateGraph:
     graph = StateGraph(QdrantClientState)
     graph.add_node(node="connect_collection", action=connect_collection_node)
     graph.add_node(node="create_new_collection", action=create_new_collection_node)
