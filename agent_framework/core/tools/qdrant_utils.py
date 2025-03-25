@@ -68,10 +68,9 @@ def retrieve_vector_store(vector_store: QdrantVectorStore, k_related_docs: int):
 def insert_vector_store(
     vector_store: QdrantVectorStore,
     docs: List[Document],
-    ids: Union[List[str], None] = None,
 ):
     """Insert data to vector store"""
-    vector_store.add_documents(documents=docs, ids=ids)
+    vector_store.add_documents(documents=docs)
     pass
 
 

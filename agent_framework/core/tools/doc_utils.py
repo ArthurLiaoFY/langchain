@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List, Union
 
 from langchain_core.documents.base import Document
 
@@ -6,9 +6,9 @@ from langchain.tools import tool
 
 
 @tool
-def str_to_doc(content: str, source: str) -> Document:
+def str_to_doc(content: str, metadata: Dict[str, Union[List, str]]) -> Document:
     """Convert content to Document"""
-    return Document(page_content=content, metadata={"source": source})
+    return Document(page_content=content, metadata=metadata)
 
 
 @tool
