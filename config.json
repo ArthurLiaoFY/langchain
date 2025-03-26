@@ -3,6 +3,9 @@
         "vector_size": 5120,
         "model_name": "deepseek-r1:14b"
     },
+    "sql_coder": {
+        "model_name": "sqlcoder:15b"
+    },
     "database": {
         "recursion_limit": 4
     },
