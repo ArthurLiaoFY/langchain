@@ -1,6 +1,8 @@
 # %%
 import json
 
+from IPython.display import Image, display
+
 from agent_framework.core.agent.pg_to_qdrant_agent import table_summary_upsert_agent
 
 with open("secrets.json") as f:
@@ -19,4 +21,7 @@ table_summary_upsert_agent().invoke(
     }
 )
 
+# %%
+
+display(Image(table_summary_upsert_agent().get_graph().draw_mermaid_png()))
 # %%
