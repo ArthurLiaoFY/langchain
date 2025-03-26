@@ -7,7 +7,7 @@ from agent_framework.core.states.qdrant_states import (
     QdrantConnectionInfo,
 )
 from agent_framework.core.tools.qdrant_utils import (
-    connect_collection_vector_store,
+    connect_collection,
     connect_qdrant_client,
     create_collection_vector_store,
 )
@@ -68,7 +68,7 @@ def create_new_collection_node(
 def connect_collection_node(
     state: QdrantClientState,
 ):
-    vector_store = connect_collection_vector_store.invoke(
+    vector_store = connect_collection.invoke(
         {
             "qdrant_client": state["qdrant_client"],
             "collection": state["collection"],

@@ -6,7 +6,7 @@ from agent_framework.core.agent.pg_agent import (
     extract_table_summary_agent,
 )
 from agent_framework.core.agent.qdrant_agent import (
-    connect_collection_agent,
+    collection_checking_agent,
     connect_qdrant_agent,
 )
 
@@ -45,52 +45,10 @@ qdrant = connect_qdrant_agent().invoke(
     }
 )
 # %%
-vector_store = connect_collection_agent().invoke(
+vector_store = collection_checking_agent().invoke(
     {
         "qdrant_client": qdrant["qdrant_client"],
         "collection": config.get("vector_store").get("collection"),
     }
 )
 
-# %%
-from agent_framework.core.tools.qdrant_utils import insert_vector_store
-
-insert_vector_store.invoke(
-    {
-        "vector_store": vector_store["vector_store"],
-        "docs": [
-            table_summary["tables"][table]["table_info_summary"]
-            for table in table_summary["tables"].keys()
-        ],
-    }
-)
-
-# %%
-from qdrant_client import QdrantClient, models
-
-vector_store["qdrant_client"].scroll(
-    collection_name="Chinook_database_table_summary",
-    scroll_filter=models.Filter(
-        must=[
-            models.FieldCondition(
-                key="metadata",
-                match=models.MatchValue(
-                    value=str(
-                        {
-                            "table": "Track",
-                            "columns": "UnitPrice, Bytes, TrackId, AlbumId, MediaTypeId, GenreId, Milliseconds, Name, Composer",
-                            "primary_key": "TrackId",
-                            "related_tables_desc": "Track with columns: UnitPrice, Bytes, TrackId, AlbumId, MediaTypeId, GenreId, Milliseconds, Name, Composer and Track with columns: UnitPrice, Bytes, TrackId, AlbumId, MediaTypeId, GenreId, Milliseconds, Name, Composer and Track with columns: UnitPrice, Bytes, TrackId, AlbumId, MediaTypeId, GenreId, Milliseconds, Name, Composer. ",
-                            "relationship_desc": "foreign key AlbumId references AlbumId in table Album and foreign key GenreId references GenreId in table Genre and foreign key MediaTypeId references MediaTypeId in table MediaType. ",
-                        }
-                    )
-                ),
-            ),
-        ]
-    ),
-    limit=1,
-    with_payload=True,
-    with_vectors=False,
-)
-
-# %%
