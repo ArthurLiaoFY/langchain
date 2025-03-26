@@ -74,9 +74,11 @@ def upsert_collection(
     vector_store.add_documents(documents=docs)
 
 
+@tool
 def check_point_exist(
     client: QdrantClient, collection_name: str, table_name: str, table_oid: str
 ):
+    """check vector point exist in vector collection"""
     return (
         True
         if len(

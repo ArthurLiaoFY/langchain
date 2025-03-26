@@ -10,6 +10,8 @@ from agent_framework.core.model import llm_model
 from agent_framework.core.prompts.pg_prompts import pg_table_information_extractor
 from agent_framework.core.states.pg_to_qdrant_states import Postgres2QdrantState
 from agent_framework.core.tools.doc_utils import str_to_doc
+from agent_framework.core.tools.pg_utils import table_summary_extract_from_llm
+from agent_framework.core.tools.qdrant_utils import check_point_exist, upsert_collection
 
 
 def get_table_info_node(state: Postgres2QdrantState):
@@ -50,6 +52,23 @@ def get_vector_store_info_node(state: Postgres2QdrantState):
     }
 
 
+def check_point_exist_node(state: Postgres2QdrantState):
+    return {
+        "tables": {
+            table_name: {**table_details}
+            for table_name, table_details in state["tables"].items()
+            if not check_point_exist.invoke(
+                {
+                    "client": state["qdrant_client"],
+                    "collection_name": state["collection"],
+                    "table_name": table_details.get("table"),
+                    "table_oid": table_details.get("table_oid"),
+                }
+            )
+        }
+    }
+
+
 def extract_table_summary_node(state: Postgres2QdrantState):
     return {
         "tables": {
@@ -60,28 +79,19 @@ def extract_table_summary_node(state: Postgres2QdrantState):
                         "content": (
                             "Hello World"
                             if state["debug"]
-                            else llm_model.invoke(
-                                input=pg_table_information_extractor.invoke(
-                                    {
-                                        # ---------------------------
-                                        "table": table_details["table"],
-                                        "columns": ", ".join(table_details["columns"]),
-                                        "primary_key": ", ".join(
-                                            table_details["primary_key"]
-                                        ),
-                                        "related_tables_desc": table_details[
-                                            "related_tables_desc"
-                                        ],
-                                        "relationship_desc": table_details[
-                                            "relationship_desc"
-                                        ],
-                                        # ---------------------------
-                                        "question": "What information does {table_name} table contains?".format(
-                                            table_name=table_details["table"]
-                                        ),
-                                    }
-                                )
-                            ).content
+                            else table_summary_extract_from_llm.invoke(
+                                {
+                                    "table_name": table_name,
+                                    "table_columns": table_details.get("columns"),
+                                    "primary_key": table_details.get("primary_key"),
+                                    "related_tables_desc": table_details.get(
+                                        "related_tables_desc"
+                                    ),
+                                    "relationship_desc": table_details.get(
+                                        "relationship_desc"
+                                    ),
+                                }
+                            )
                         ),
                         "metadata": {
                             k: ", ".join(detail) if type(detail) == list else detail
@@ -96,4 +106,12 @@ def extract_table_summary_node(state: Postgres2QdrantState):
 
 
 def upsert_to_vector_database_node(state: Postgres2QdrantState):
-    pass
+    upsert_collection.invoke(
+        {
+            "vector_store": state["vector_store"],
+            "docs": [
+                table_details.get("table_info_summary")
+                for table_name, table_details in state["tables"].items()
+            ],
+        }
+    )

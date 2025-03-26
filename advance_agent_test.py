@@ -15,6 +15,7 @@ table_summary_upsert_agent().invoke(
         "qdrant_connection_info": secrets.get("qdrant"),
         "collection": config.get("vector_store").get("collection"),
         "recursion_limit": 4,
+        "debug": True,
     }
 )
 

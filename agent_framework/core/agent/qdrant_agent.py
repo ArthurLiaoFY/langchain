@@ -32,7 +32,7 @@ def connect_qdrant_agent() -> CompiledStateGraph:
     graph.add_conditional_edges(
         source="reconnect_qdrant_client", path=client_connection_route
     )
-    graph.add_edge(start_key="delete_sensitive_info", end_key=END)
+    # graph.add_edge(start_key="delete_sensitive_info", end_key=END)
 
     return graph.compile()
 

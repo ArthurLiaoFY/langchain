@@ -16,8 +16,6 @@ class TableState(TypedDict):
     relationship_desc: str
     # ---------------------------
     table_info_summary: Document
-    # ---------------------------
-    exist_in_collection: bool
 
 
 class PostgresConnectionInfo(TypedDict):

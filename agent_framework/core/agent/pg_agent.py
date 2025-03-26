@@ -27,7 +27,7 @@ def connect_postgres_agent() -> CompiledStateGraph:
         source="reconnect_db",
         path=database_connection_route,
     )
-    graph.add_edge(start_key="delete_sensitive_info", end_key=END)
+    # graph.add_edge(start_key="delete_sensitive_info", end_key=END)
 
     return graph.compile()
 

@@ -3,6 +3,8 @@ import psycopg2
 from psycopg2.extensions import connection
 from typing_extensions import Dict, List, Union
 
+from agent_framework.core.model import llm_model
+from agent_framework.core.prompts.pg_prompts import pg_table_information_extractor
 from langchain.tools import tool
 
 
@@ -181,3 +183,28 @@ def query(database: connection, query: str) -> pd.DataFrame:
         return pd.DataFrame(
             data=curs.fetchall(), columns=[desc[0] for desc in curs.description]
         )
+
+
+@tool
+def table_summary_extract_from_llm(
+    table_name: str,
+    table_columns: List[str],
+    primary_key: List[str],
+    related_tables_desc: str,
+    relationship_desc: str,
+) -> str:
+    """return LLM table summary"""
+    return llm_model.invoke(
+        input=pg_table_information_extractor.invoke(
+            {
+                # ---------------------------
+                "table": table_name,
+                "columns": ", ".join(table_columns),
+                "primary_key": ", ".join(primary_key),
+                "related_tables_desc": related_tables_desc,
+                "relationship_desc": relationship_desc,
+                # ---------------------------
+                "question": f"What information does {table_name} table contains?",
+            }
+        )
+    ).content

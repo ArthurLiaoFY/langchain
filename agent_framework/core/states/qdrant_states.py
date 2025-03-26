@@ -2,6 +2,8 @@ from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
 from typing_extensions import Dict, TypedDict, Union
 
+from agent_framework.core.states.pg_states import TableState
+
 
 class QdrantConnectionInfo(TypedDict):
     # ---------------------------
@@ -22,3 +24,7 @@ class QdrantClientState(TypedDict):
     vector_store: Union[QdrantVectorStore, None]
     is_connected: bool
     # ---------------------------
+
+
+class QdrantRetrieveState(TypedDict):
+    pass
