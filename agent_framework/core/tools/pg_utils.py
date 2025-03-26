@@ -69,7 +69,7 @@ def get_table_oid(database: connection, table_name: str) -> List[str]:
             WHERE relname = '{table_name}';
             """
         )
-        return [str(row[0]) for row in curs.fetchall()]
+        return [str(row[0]) for row in curs.fetchall()][0]
 
 
 @tool
