@@ -194,7 +194,7 @@ def table_summary_extract_from_llm(
     relationship_desc: str,
 ) -> str:
     """return LLM table summary"""
-    return llm_model.invoke(
+    content = llm_model.invoke(
         input=pg_table_information_extractor.invoke(
             {
                 # ---------------------------
@@ -208,3 +208,8 @@ def table_summary_extract_from_llm(
             }
         )
     ).content
+    if "</think>" in content:
+        return content.split(sep="</think>")[-1]
+
+    else:
+        return content

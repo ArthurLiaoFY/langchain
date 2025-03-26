@@ -13,15 +13,22 @@ with open("config.json") as f:
 # %%
 table_summary_upsert_agent().invoke(
     {
+        # ---------------------------
         "postgres_connection_info": secrets.get("postgres"),
         "qdrant_connection_info": secrets.get("qdrant"),
         "collection": config.get("vector_store").get("collection"),
         "recursion_limit": 4,
+        "similarity_doc_number": 3,
         "debug": False,
+        # ---------------------------
+        "question": "select all data from Album table",
+        # ---------------------------
     }
 )
 
 # %%
 
 display(Image(table_summary_upsert_agent().get_graph().draw_mermaid_png()))
+# %%
+
 # %%

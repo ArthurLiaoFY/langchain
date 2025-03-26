@@ -38,7 +38,7 @@ def connect_qdrant_agent() -> CompiledStateGraph:
     return graph.compile()
 
 
-def collection_checking_agent() -> CompiledStateGraph:
+def connect_qdrant_collection_agent() -> CompiledStateGraph:
     graph = StateGraph(QdrantClientState)
     graph.add_node(node="connect_collection", action=connect_collection_node)
     graph.add_node(node="create_new_collection", action=create_new_collection_node)
@@ -48,19 +48,5 @@ def collection_checking_agent() -> CompiledStateGraph:
         source="connect_collection", path=collection_connection_route
     )
     graph.add_edge(start_key="create_new_collection", end_key="connect_collection")
-
-    return graph.compile()
-
-
-def table_summary_retrieve_agent() -> CompiledStateGraph:
-    graph = StateGraph(QdrantClientState)
-    graph.add_node(node="set_as_retriever", action=RunnablePassthrough())
-    graph.add_node(node="join_retrieved_document", action=RunnablePassthrough())
-    graph.add_node(node="generate_sql_code", action=RunnablePassthrough())
-
-    graph.add_edge(start_key=START, end_key="set_as_retriever")
-    graph.add_edge(start_key="set_as_retriever", end_key="join_retrieved_document")
-    graph.add_edge(start_key="join_retrieved_document", end_key="generate_sql_code")
-    graph.add_edge(start_key="generate_sql_code", end_key=END)
 
     return graph.compile()

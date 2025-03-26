@@ -1,20 +1,23 @@
+import sqlparse
+
 from agent_framework.core.agent.pg_agent import (
     connect_postgres_agent,
     get_postgres_table_info_agent,
 )
 from agent_framework.core.agent.qdrant_agent import (
-    collection_checking_agent,
     connect_qdrant_agent,
+    connect_qdrant_collection_agent,
 )
-from agent_framework.core.model import llm_model
+from agent_framework.core.model import llm_model, sql_coder_model
 from agent_framework.core.prompts.pg_prompts import pg_table_information_extractor
-from agent_framework.core.states.pg_to_qdrant_states import Postgres2QdrantState
-from agent_framework.core.tools.doc_utils import str_to_doc
+from agent_framework.core.prompts.sql_prompts import sql_coder_from_rag
+from agent_framework.core.states.pg_to_qdrant_states import PostgresQdrantState
+from agent_framework.core.tools.doc_utils import join_docs, str_to_doc
 from agent_framework.core.tools.pg_utils import table_summary_extract_from_llm
 from agent_framework.core.tools.qdrant_utils import check_point_exist, upsert_collection
 
 
-def get_table_info_node(state: Postgres2QdrantState):
+def get_table_info_node(state: PostgresQdrantState):
     postgres = connect_postgres_agent().invoke(
         {
             "postgres_connection_info": state["postgres_connection_info"],
@@ -32,7 +35,7 @@ def get_table_info_node(state: Postgres2QdrantState):
     }
 
 
-def get_vector_store_info_node(state: Postgres2QdrantState):
+def get_vector_store_info_node(state: PostgresQdrantState):
     qdrant = connect_qdrant_agent().invoke(
         {
             "qdrant_connection_info": state["qdrant_connection_info"],
@@ -40,7 +43,7 @@ def get_vector_store_info_node(state: Postgres2QdrantState):
         }
     )
 
-    vector_store = collection_checking_agent().invoke(
+    vector_store = connect_qdrant_collection_agent().invoke(
         {
             "qdrant_client": qdrant["qdrant_client"],
             "collection": state["collection"],
@@ -52,7 +55,7 @@ def get_vector_store_info_node(state: Postgres2QdrantState):
     }
 
 
-def check_point_exist_node(state: Postgres2QdrantState):
+def check_point_exist_node(state: PostgresQdrantState):
     return {
         "tables": {
             table_name: {**table_details}
@@ -69,7 +72,7 @@ def check_point_exist_node(state: Postgres2QdrantState):
     }
 
 
-def extract_table_summary_node(state: Postgres2QdrantState):
+def extract_table_summary_node(state: PostgresQdrantState):
     return {
         "tables": {
             table_name: {
@@ -105,7 +108,7 @@ def extract_table_summary_node(state: Postgres2QdrantState):
     }
 
 
-def upsert_to_vector_database_node(state: Postgres2QdrantState):
+def upsert_to_vector_database_node(state: PostgresQdrantState):
     upsert_collection.invoke(
         {
             "vector_store": state["vector_store"],
@@ -115,3 +118,44 @@ def upsert_to_vector_database_node(state: Postgres2QdrantState):
             ],
         }
     )
+
+
+def get_related_documents_node(
+    state: PostgresQdrantState,
+):
+    state["vector_store"].as_retriever()
+    return {
+        "joined_related_documents": join_docs.invoke(
+            {
+                "docs": state["vector_store"].similarity_search(
+                    query=state["question"],
+                    k=state["similarity_doc_number"],
+                )
+            }
+        )
+    }
+
+
+def generate_respective_sql_code_node(
+    state: PostgresQdrantState,
+):
+    print(
+        sql_coder_model.invoke(
+            input=sql_coder_from_rag.invoke(
+                {
+                    "question": state["question"],
+                    "content": state["joined_related_documents"],
+                }
+            )
+        )
+    )
+    return {
+        "sql_code": sql_coder_model.invoke(
+            input=sql_coder_from_rag.invoke(
+                {
+                    "question": state["question"],
+                    "content": state["joined_related_documents"],
+                }
+            )
+        ).content
+    }

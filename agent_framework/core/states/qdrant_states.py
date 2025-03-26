@@ -24,7 +24,3 @@ class QdrantClientState(TypedDict):
     vector_store: Union[QdrantVectorStore, None]
     is_connected: bool
     # ---------------------------
-
-
-class QdrantRetrieveState(TypedDict):
-    pass

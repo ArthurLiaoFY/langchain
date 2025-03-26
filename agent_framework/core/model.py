@@ -12,3 +12,9 @@ llm_model = ChatOllama(
 llm_embd = OllamaEmbeddings(
     model=config.get("llm_model", {}).get("model_name", "deepseek-r1:14b"),
 )
+
+
+sql_coder_model = ChatOllama(
+    model=config.get("sql_coder", {}).get("model_name", "sqlcoder:15b"),
+    temperature=0,
+)

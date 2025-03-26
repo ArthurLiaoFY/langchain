@@ -3,7 +3,6 @@ from langgraph.types import Send
 from qdrant_client.models import Distance, PointStruct, VectorParams
 from typing_extensions import Dict, List, Union
 
-from agent_framework.core.base_models.pg_base_models import PostgresInformationDistill
 from agent_framework.core.model import llm_model
 from agent_framework.core.prompts.pg_prompts import pg_table_information_extractor
 from agent_framework.core.states.pg_states import (
@@ -95,4 +94,3 @@ def get_database_common_info_node(state: DatabaseState):
             )
         },
     }
-
