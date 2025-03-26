@@ -36,3 +36,5 @@ def table_summary_upsert_agent() -> CompiledStateGraph:
     graph.add_edge(start_key="point_upsert", end_key=END)
 
     return graph.compile()
+
+
