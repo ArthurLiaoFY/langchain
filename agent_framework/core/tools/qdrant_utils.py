@@ -43,7 +43,7 @@ def create_collection_vector_store(
 
 
 @tool
-def connect_collection_vector_store(
+def connect_collection(
     qdrant_client: QdrantClient,
     collection: str,
     llm_embd: OllamaEmbeddings,
@@ -59,14 +59,14 @@ def connect_collection_vector_store(
         return None
 
 
-def retrieve_vector_store(vector_store: QdrantVectorStore, k_related_docs: int):
+def retrieve_collection(vector_store: QdrantVectorStore, k_related_docs: int):
     """Retrieve data from vector store"""
     vector_store.as_retriever(search_kwargs={"k": k_related_docs})
     pass
 
 
 @tool
-def insert_vector_store(
+def upsert_collection(
     vector_store: QdrantVectorStore,
     docs: List[Document],
 ) -> None:
@@ -74,18 +74,31 @@ def insert_vector_store(
     vector_store.add_documents(documents=docs)
 
 
-def check_payload_match(client: QdrantClient, collection_name: str, table_name: str):
-    print(
-        client.count(
-            collection_name=collection_name,
-            count_filter=models.Filter(
-                must=[
-                    models.FieldCondition(
-                        key="table_name",
-                        match=models.MatchValue(value=table_name),
-                    ),
-                ]
-            ),
-            exact=True,
+def check_point_exist(
+    client: QdrantClient, collection_name: str, table_name: str, table_oid: str
+):
+    return (
+        True
+        if len(
+            client.scroll(
+                collection_name=collection_name,
+                scroll_filter=models.Filter(
+                    must=[
+                        models.FieldCondition(
+                            key="metadata.table_oid",
+                            match=models.MatchValue(value=table_oid),
+                        ),
+                        models.FieldCondition(
+                            key="metadata.table",
+                            match=models.MatchValue(value=table_name),
+                        ),
+                    ]
+                ),
+                limit=1,
+                with_payload=False,
+                with_vectors=False,
+            )[0]
         )
+        > 0
+        else False
     )
