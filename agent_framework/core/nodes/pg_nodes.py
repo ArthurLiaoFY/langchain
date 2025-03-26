@@ -25,6 +25,7 @@ from agent_framework.core.tools.pg_utils import (
     get_table_primary_key,
     query,
 )
+from agent_framework.core.tools.qdrant_utils import check_point_exist
 
 
 def connect_database_node(
@@ -95,54 +96,3 @@ def get_database_common_info_node(state: DatabaseState):
         },
     }
 
-
-def extract_table_summary_node(state: DatabaseState):
-    return {
-        "tables": {
-            table_name: {
-                **table_details,
-                "table_info_summary": str_to_doc.invoke(
-                    {
-                        "content": (
-                            "Hello World"
-                            if state["debug"]
-                            else llm_model.invoke(
-                                input=pg_table_information_extractor.invoke(
-                                    {
-                                        "format_instructions": JsonOutputParser(
-                                            pydantic_object=PostgresInformationDistill
-                                        ).get_format_instructions(),
-                                        # ---------------------------
-                                        "table": table_details["table"],
-                                        "columns": ", ".join(table_details["columns"]),
-                                        "primary_key": ", ".join(
-                                            table_details["primary_key"]
-                                        ),
-                                        "related_tables_desc": table_details[
-                                            "related_tables_desc"
-                                        ],
-                                        "relationship_desc": table_details[
-                                            "relationship_desc"
-                                        ],
-                                        # ---------------------------
-                                        "question": "What information does {table_name} table contains?".format(
-                                            table_name=table_details["table"]
-                                        ),
-                                    }
-                                )
-                            ).content
-                        ),
-                        "metadata": {
-                            k: ", ".join(detail) if type(detail) == list else detail
-                            for k, detail in table_details.items()
-                        },
-                    }
-                ),
-            }
-            for table_name, table_details in state["tables"].items()
-        }
-    }
-
-
-def upsert_to_vector_database_node(state: DatabaseState):
-    pass

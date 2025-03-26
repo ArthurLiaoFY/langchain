@@ -4,7 +4,6 @@ from langgraph.graph.state import CompiledStateGraph
 from agent_framework.core.nodes.pg_nodes import (
     connect_database_node,
     delete_connection_info_node,
-    extract_table_summary_node,
     get_database_common_info_node,
     reconnect_database_node,
 )
@@ -33,17 +32,12 @@ def connect_postgres_agent() -> CompiledStateGraph:
     return graph.compile()
 
 
-def extract_table_summary_agent() -> CompiledStateGraph:
+def get_postgres_table_info_agent() -> CompiledStateGraph:
     graph = StateGraph(DatabaseState)
     graph.add_node(
         node="get_database_common_info", action=get_database_common_info_node
     )
-    graph.add_node(node="extract_table_summary", action=extract_table_summary_node)
-
     graph.add_edge(start_key=START, end_key="get_database_common_info")
-    graph.add_edge(
-        start_key="get_database_common_info", end_key="extract_table_summary"
-    )
-    graph.add_edge(start_key="extract_table_summary", end_key=END)
-
+    graph.add_edge(start_key="get_database_common_info", end_key=END)
     return graph.compile()
+
