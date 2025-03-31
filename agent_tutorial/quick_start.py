@@ -89,32 +89,3 @@ for step in agent_executor.stream(
 ):
     step["messages"][-1].pretty_print()
 # %%
-# Use the agent
-config = {"configurable": {"thread_id": "abc123"}}
-for step in agent_executor.stream(
-    {"messages": [HumanMessage(content="hi im bob! and i live in sf")]},
-    config,
-    stream_mode="values",
-):
-    step["messages"][-1].pretty_print()
-# %%
-for step in agent_executor.stream(
-    {"messages": [HumanMessage(content="whats the weather where I live?")]},
-    config,
-    stream_mode="values",
-):
-    step["messages"][-1].pretty_print()
-# %%
-for step in agent_executor.stream(
-    {
-        "messages": [
-            HumanMessage(
-                content="Yes, please search for the current weather conditions using an available source"
-            )
-        ]
-    },
-    config,
-    stream_mode="values",
-):
-    step["messages"][-1].pretty_print()
-# %%

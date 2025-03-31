@@ -9,6 +9,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.tools import tool
 from langchain_experimental.utilities import PythonREPL
 from langchain_ollama import ChatOllama
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import create_react_agent
 from langgraph.types import Command
@@ -83,10 +84,14 @@ def supervisor_node(state: State) -> Command[Literal["researcher", "coder", "__e
 
 
 # %%
+memory = MemorySaver()
 
 
 research_agent = create_react_agent(
-    llm, tools=[tavily_tool], prompt="You are a researcher. DO NOT do any math."
+    model=llm,
+    tools=[tavily_tool],
+    prompt="You are a researcher. DO NOT do any math.",
+    checkpointer=memory,
 )
 
 
@@ -103,7 +108,12 @@ def research_node(state: State) -> Command[Literal["supervisor"]]:
 
 
 # NOTE: THIS PERFORMS ARBITRARY CODE EXECUTION, WHICH CAN BE UNSAFE WHEN NOT SANDBOXED
-code_agent = create_react_agent(llm, tools=[python_repl_tool])
+code_agent = create_react_agent(
+    model=llm,
+    tools=[python_repl_tool],
+    prompt="You are a Python coder.",
+    checkpointer=memory,
+)
 
 
 def code_node(state: State) -> Command[Literal["supervisor"]]:
@@ -111,7 +121,10 @@ def code_node(state: State) -> Command[Literal["supervisor"]]:
     return Command(
         update={
             "messages": [
-                AIMessage(content=result["messages"][-1].content, name="coder")
+                AIMessage(
+                    content=result["messages"][-1].content,
+                    name="coder",
+                )
             ]
         },
         goto="supervisor",
@@ -135,10 +148,12 @@ display(Image(graph.get_graph().draw_mermaid_png()))
 #     print("----")
 
 # %%
-a = graph.invoke({"messages": [("user", "What's the square root of 42?")]})
+a = graph.invoke(
+    input={"messages": [("user", "What's the square root of 42?")]},
+    config={"configurable": {"thread_id": "arthur.fy.liao"}},
+)
 # %%
-# a
-a.get("messages")[0]
+a.get("messages")[0].content
 # %%
-a
+a.get("messages")[1].content
 # %%
