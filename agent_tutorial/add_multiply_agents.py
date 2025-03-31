@@ -1,6 +1,6 @@
 # %%
 
-from langchain_core.messages import ToolMessage
+from langchain_core.messages import ToolMessage, convert_to_messages
 from langchain_core.tools import tool
 from langchain_ollama import ChatOllama
 from langgraph.graph import START, MessagesState, StateGraph
@@ -76,6 +76,7 @@ def multiplication_expert(
 
     return {"messages": [ai_msg]}
 
+
 # %%
 builder = StateGraph(MessagesState)
 builder.add_node("addition_expert", addition_expert)
@@ -84,7 +85,6 @@ builder.add_node("multiplication_expert", multiplication_expert)
 builder.add_edge(START, "addition_expert")
 graph = builder.compile()
 # %%
-from langchain_core.messages import convert_to_messages
 
 
 def pretty_print_messages(update):
@@ -92,7 +92,7 @@ def pretty_print_messages(update):
         ns, update = update
         # skip parent graph updates in the printouts
         if len(ns) == 0:
-            return 
+            return
 
         graph_id = ns[-1].split(":")[0]
         print(f"Update from subgraph {graph_id}:")
@@ -105,9 +105,11 @@ def pretty_print_messages(update):
         for m in convert_to_messages(node_update["messages"]):
             m.pretty_print()
         print("\n")
+
+
 # %%
 for chunk in graph.stream(
-    {"messages": [("user", "what's (3 + 5) * 12")]},
+    {"messages": [("user", "what's the answer of (3 + 5) * 12")]},
 ):
     pretty_print_messages(chunk)
 # %%
