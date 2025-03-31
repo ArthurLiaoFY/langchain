@@ -105,10 +105,10 @@ db = SQLDatabase.from_uri(database_uri="sqlite:///Chinook.db")
 db._sample_rows_in_table_info = 0
 
 # %%
-llm = ChatOllama(model="minicpm-v:latest", format="json").with_structured_output(
+llm = ChatOllama(model="qwen2.5:14b", temperature=0).with_structured_output(
     schema=SQLQueryOutput,
 )
-llm4SQL = ChatOllama(model="minicpm-v:latest", format="json")
+llm4SQL = ChatOllama(model="qwen2.5:14b", temperature=0)
 
 
 # %%
