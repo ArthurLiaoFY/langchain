@@ -32,12 +32,6 @@ db = SQLDatabase.from_uri(
 )
 
 
-class SQLQueryOutput(BaseModel):
-    """Generated SQL query."""
-
-    query: Annotated[str, ..., "Syntactically valid SQL query."]
-
-
 prefix_template = ChatPromptTemplate(
     messages=[
         (
@@ -50,12 +44,11 @@ prefix_template = ChatPromptTemplate(
             You can order the results by a relevant column to return the most interesting examples in the database
             You have access to tools for interacting with the database.
             Never query for all the columns from a specific table, only ask for the relevant columns given the question.
-            Wrap each column name in double quotes (") to denote them as delimited identifiers.
+            Wrap each column name in double quotes to denote them as delimited identifiers.
             Only use the below tools. Only use the information returned by the below tools to construct your final answer.
             You MUST double check your query before executing it. If you get an error while executing a query, rewrite the query and try again.
 
             DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.
-            DO NOT do any math or descriptive statistic, you can ask an pandas dataframe expert for help with math and descriptive statistic. 
 
             To start you should ALWAYS look at the tables in the database to see what you can query.
             Do NOT skip this step.
@@ -64,7 +57,6 @@ prefix_template = ChatPromptTemplate(
         ),
     ]
 )
-
 format_instructions_template = """
 Use the following format:
 
@@ -93,11 +85,13 @@ sql_agent = create_sql_agent(
 # %%
 
 
-json_parser = JsonOutputParser(pydantic_object=SQLQueryOutput)
 result = sql_agent.invoke(
     {
         "input": "what is the mean and std of sepal length for 'setosa'",
     }
 )
+
+# %%
+result
 
 # %%
