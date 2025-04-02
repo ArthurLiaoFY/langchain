@@ -1,4 +1,5 @@
 # %%
+import asyncio
 import json
 import operator
 import os
@@ -89,6 +90,7 @@ planner_prompt = ChatPromptTemplate.from_messages(
             "This plan should involve individual tasks, "
             "that if executed correctly will yield the correct answer. "
             "Do not add any superfluous steps. "
+            "Wrap strings by double quotes instead of single quotes. "
             "The result of the final step should be the final answer. "
             "Make sure that each step has all the information needed - do not skip steps. "
             "{plan_format_instructions}",
@@ -119,15 +121,51 @@ replanner_prompt = ChatPromptTemplate.from_template(
 # %%
 agent_executor = create_react_agent(
     model=llm,
-    tools=[TavilySearchResults(max_results=3)],
-    prompt="You are a helpful assistant.",
+    tools=[TavilySearchResults(max_results=5)],
+    prompt=(
+        "You are a web search assistant, "
+        "Always search the internet before answering questions."
+    ),
 )
 planner = planner_prompt | llm | plan_json_parser
 replanner = replanner_prompt | llm | act_json_parser
 
 
 # %%
-async def execute_step(state: PlanExecute):
+def plan_step(state: PlanExecute):
+    plan = planner.invoke(
+        {
+            "messages": [{"role": "human", "content": state["input"]}],
+            "plan_format_instructions": plan_json_parser.get_format_instructions(),
+        }
+    )
+    return {"plan": plan.get("steps", [])}
+
+
+def replan_step(state: PlanExecute):
+    output = replanner.invoke(
+        {
+            "input": state["input"],
+            "plan": state["plan"],
+            "past_steps": state["past_steps"],
+            "act_format_instructions": act_json_parser.get_format_instructions(),
+        }
+    )
+
+    if "response" in output.get("action").keys():
+        return {"response": output.get("action", {}).get("response", "")}
+    else:
+        return {"plan": output.get("action", {}).get("steps", [])}
+
+
+def should_end(state: PlanExecute):
+    if "response" in state and state["response"]:
+        return END
+    else:
+        return "agent"
+
+
+def execute_step(state: PlanExecute):
     plan = state["plan"]
     plan_str = "\n".join(f"{i+1}. {step}" for i, step in enumerate(plan))
     task = plan[0]
@@ -135,9 +173,54 @@ async def execute_step(state: PlanExecute):
     For the following plan:
     {plan_str}\n\nYou are tasked with executing step {1}, {task}.
     """
-    agent_response = await agent_executor.ainvoke(
-        {"messages": [("human", task_formatted)]}
+    agent_response = agent_executor.invoke(
+        {"messages": [{"role": "human", "content": task_formatted}]}
     )
     return {
         "past_steps": [(task, agent_response["messages"][-1].content)],
     }
+
+
+# %%
+from langgraph.graph import START, StateGraph
+
+workflow = StateGraph(PlanExecute)
+
+workflow.add_node("planner", plan_step)
+workflow.add_node("replan", replan_step)
+workflow.add_node("agent", execute_step)
+
+workflow.add_edge(START, "planner")
+
+# From plan we go to agent
+workflow.add_edge("planner", "agent")
+
+# From agent, we replan
+workflow.add_edge("agent", "replan")
+
+workflow.add_conditional_edges(
+    "replan",
+    # Next, we pass in the function that will determine which node is called next.
+    should_end,
+    ["agent", END],
+)
+
+# Finally, we compile it!
+# This compiles it into a LangChain Runnable,
+# meaning you can use it as you would any other runnable
+app = workflow.compile()
+# %%
+display(Image(app.get_graph(xray=True).draw_mermaid_png()))
+
+
+# %%
+question = "what is the hometown of the mens 2024 Australia open winner?"
+
+for event in app.stream({"input": question}):
+    for k, v in event.items():
+        if k != "__end__":
+            print("-" * 20 + k + "-" * 20)
+            print(v)
+
+
+# %%
