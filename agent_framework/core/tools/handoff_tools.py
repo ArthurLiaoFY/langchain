@@ -6,7 +6,6 @@ from langgraph.prebuilt import InjectedState
 from langgraph.types import Command
 
 
-@tool
 def make_handoff_tool(*, agent_name: str):
     """Create a tool that can return handoff via a Command"""
     tool_name = f"transfer_to_{agent_name}"
