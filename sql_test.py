@@ -1,5 +1,6 @@
 # %%
 # https://python.langchain.com/docs/tutorials/sql_qa/
+import json
 import operator
 from time import sleep
 from typing import Annotated, List, Literal, TypedDict
@@ -8,6 +9,7 @@ import pandas as pd
 from langchain_community.utilities import SQLDatabase
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
+from langsmith import Client
 from pydantic import BaseModel, Field
 from typing_extensions import Annotated
 
@@ -16,30 +18,16 @@ from langchain.globals import set_debug, set_llm_cache
 
 set_llm_cache(InMemoryCache())
 set_debug(True)
+with open("/Users/wr80340/WorkSpace/langchain/secrets.json") as f:
+    secrets = json.loads(f.read())
 
 # %%
 # prompt
-query_prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            """
-            Given an input question, create a syntactically correct {dialect} query to run to help find the answer. Unless the user specifies in his question a specific number of examples they wish to obtain, always limit your query to at most {top_k} results. You can order the results by a relevant column to return the most interesting examples in the database.
 
-            Never query for all the columns from a specific table, only ask for a the few relevant columns given the question.
-
-            Pay attention to use only the column names that you can see in the schema description. Be careful to not query for columns that do not exist. Also, pay attention to which column is in which table.
-
-            Only use the following tables with name:
-            {table_name}
-
-            and information:
-            {table_info}
-
-            Question: {input}
-            """,
-        )
-    ]
+client = Client(api_key=secrets.get("langsmith").get("api_key"))
+query_prompt = client.pull_prompt(
+    prompt_identifier="langchain-ai/sql-query-system-prompt:5d6c20e9",
+    include_model=False,
 )
 sql_map_prompt_template = ChatPromptTemplate.from_messages(
     [
@@ -50,6 +38,7 @@ sql_map_prompt_template = ChatPromptTemplate.from_messages(
         )
     ]
 )
+# %%
 reduce_prompt = ChatPromptTemplate.from_messages(
     [
         (
