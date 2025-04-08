@@ -20,11 +20,15 @@ model = ChatOllama(
 class WeatherResponse(BaseModel):
     """Respond to the user with this"""
 
-    temperature: float = Field(description="The temperature in fahrenheit")
-    wind_directon: str = Field(
-        description="The direction of the wind in abbreviated form"
+    temperature: float = Field(
+        description="The temperature in fahrenheit",
     )
-    wind_speed: float = Field(description="The speed of the wind in km/h")
+    wind_directon: str = Field(
+        description="The direction of the wind in abbreviated form",
+    )
+    wind_speed: float = Field(
+        description="The speed of the wind in km/h",
+    )
 
 
 # Inherit 'messages' key from MessagesState, which is a list of chat messages
@@ -43,12 +47,6 @@ def get_weather(city: Literal["nyc", "sf"]):
     else:
         raise AssertionError("Unknown city")
 
-
-tools = [get_weather]
-
-
-model_with_tools = model.bind_tools(tools)
-model_with_structured_output = model.with_structured_output(WeatherResponse)
 
 tools = [get_weather, WeatherResponse]
 
