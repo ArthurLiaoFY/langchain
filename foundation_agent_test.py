@@ -6,8 +6,8 @@ from agent_framework.core.agent.pg_agent import (
     get_postgres_table_info_agent,
 )
 from agent_framework.core.agent.qdrant_agent import (
+    collection_checking_agent,
     connect_qdrant_agent,
-    connect_qdrant_collection_agent,
 )
 
 with open("secrets.json") as f:
@@ -44,7 +44,7 @@ qdrant = connect_qdrant_agent().invoke(
     }
 )
 # %%
-vector_store = connect_qdrant_collection_agent().invoke(
+vector_store = collection_checking_agent().invoke(
     {
         "qdrant_client": qdrant["qdrant_client"],
         "collection": config.get("vector_store").get("collection"),
